@@ -1,253 +1,319 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const KittyProApp());
 }
 
 class KittyProApp extends StatelessWidget {
-  const KittyProApp({Key? key}) : super(key: key);
+  const KittyProApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'KittyPro',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFFDFBF7),
-        primaryColor: const Color(0xFFD81B60),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFFD81B60),
-          secondary: Color(0xFFC79100),
-          surface: Color(0xFFFFF0F5),
+        scaffoldBackgroundColor: const Color(0xFFFFF0F5), // Soft Pink Background
+        primaryColor: const Color(0xFFD87093), // Pale Violet / Pink
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFD87093),
+          secondary: const Color(0xFFFFFDD0), // Cream
         ),
+        fontFamily: 'Roboto',
       ),
-      home: const DateSelectorScreen(),
+      home: const KittyHomeScreen(),
     );
   }
 }
 
-class DateSelectorScreen extends StatefulWidget {
-  const DateSelectorScreen({Key? key}) : super(key: key);
+class KittyHomeScreen extends StatefulWidget {
+  const KittyHomeScreen({super.key});
 
   @override
-  State<DateSelectorScreen> createState() => _DateSelectorScreenState();
+  State<KittyHomeScreen> createState() => _KittyHomeScreenState();
 }
 
-class _DateSelectorScreenState extends State<DateSelectorScreen> {
+class _KittyHomeScreenState extends State<KittyHomeScreen> {
   DateTime selectedDate = DateTime.now();
+  List<Map<String, String>> currentThemes = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _generateThemesForDate(selectedDate);
+  }
+
+  // Date ke hisab se themes generate karne ka logic
+  void _generateThemesForDate(DateTime date) {
+    int month = date.month;
+
+    // Month categories: Winter/Festive (Nov-Feb), Summer/Floral (Mar-Jun), Monsoon/Desi (Jul-Oct)
+    if (month >= 11 || month <= 2) {
+      currentThemes = [
+        {
+          "title": "Royal Velvet Winter",
+          "dressCode": "Deep Maroon or Emerald Green",
+          "vibe": "Warm, Cozy & Royal",
+          "menu": "Gajar ka Halwa, Soup & Paneer Tikka"
+        },
+        {
+          "title": "Glittering Gold & Velvet",
+          "dressCode": "Black with Gold Accents",
+          "vibe": "Chic, Glamorous & Warm",
+          "menu": "Stuffed Mushroom, Sizzlers & Hot Coffee"
+        },
+        {
+          "title": "Bonfire & Cashmere Night",
+          "dressCode": "Pastel Woolens & Shawls",
+          "vibe": "Relaxed, Talkative & Intimate",
+          "menu": "Corn Chaat, Barbeque & Masala Chai"
+        },
+      ];
+    } else if (month >= 3 && month <= 6) {
+      currentThemes = [
+        {
+          "title": "Floral Garden Brunch",
+          "dressCode": "Floral Prints & Pastels",
+          "vibe": "Fresh, Breezy & Vibrant",
+          "menu": "Fruit Salads, Cold Brews & Pasta"
+        },
+        {
+          "title": "Sunset Pastel Soirée",
+          "dressCode": "Lavender, Peach or Mint Green",
+          "vibe": "Elegantly Relaxed & Open-air",
+          "menu": "Mojitos, Bruschetta & Mini Tarts"
+        },
+        {
+          "title": "Tropical Summer Splash",
+          "dressCode": "Bright Yellow or Turquoise",
+          "vibe": "Fun, Lively & Energetic",
+          "menu": "Watermelon Slush, Tacos & Ice Creams"
+        },
+      ];
+    } else {
+      currentThemes = [
+        {
+          "title": "Desi Monsoon Chai Party",
+          "dressCode": "Mustard Yellow or Forest Green",
+          "vibe": "Cozy, Nostalgic & Chatter-filled",
+          "menu": "Hot Pakoras, Samosas & Adrak Chai"
+        },
+        {
+          "title": "Traditional Banarasi Vibe",
+          "dressCode": "Silk Sarees with Traditional Jhumkas",
+          "vibe": "Classic Indian Cultural Vibe",
+          "menu": "Kachori, Imarti & Shikanji"
+        },
+        {
+          "title": "Raindrop High Tea",
+          "dressCode": "Pinks and Off-White Pastels",
+          "vibe": "Sophisticated & Rain-watching",
+          "menu": "Cookies, Finger Sandwiches & Earl Grey Tea"
+        },
+      ];
+    }
+  }
+
+  // Date picker open karne ke liye
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime(2026),
       lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFD87093),
+              onPrimary: Colors.white,
+              surface: Color(0xFFFFFDD0),
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
+        _generateThemesForDate(selectedDate);
       });
     }
   }
 
-  void _generateThemes() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ThemeResultScreen(partyDate: selectedDate),
-      ),
-    );
-  }
+  // WhatsApp par share karne ka function
+  Future<void> shareThemeOnWhatsApp(String themeName, String dressCode, String vibe, String menu) async {
+    final message = '''
+🌸 *Kitty Party Theme Idea* 🌸
+✨ *Theme:* $themeName
+👗 *Dress Code:* $dressCode
+🎨 *Vibe:* $vibe
+🍽️ *Menu Idea:* $menu
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          '✨ KITTY PRO PLANNER ✨',
-          style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold, color: Color(0xFF880E4F), fontSize: 18),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8E1E7),
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFCE4EC),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.pink.withOpacity(0.1),
-                    blurRadius: 15,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.celebration, size: 70, color: Color(0xFFD81B60)),
-            ),
-            const SizedBox(height: 30),
-            const Text(
-              'Select Party Date',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF4A2E35), fontFamily: 'serif'),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFF8BBD0)),
-              ),
-              child: Text(
-                '${selectedDate.day} / ${selectedDate.month} / ${selectedDate.year}',
-                style: const TextStyle(fontSize: 22, color: Color(0xFFD81B60), fontWeight: FontWeight.bold, fontFamily: 'monospace'),
-              ),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF48FB1),
-                foregroundColor: const Color(0xFF4A2E35),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              ),
-              onPressed: () => _selectDate(context),
-              icon: const Icon(Icons.calendar_month),
-              label: const Text('Pick Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD81B60),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                ),
-                onPressed: _generateThemes,
-                child: const Text('GENERATE 3 THEME IDEAS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+_Generated via KittyPro_
+''';
 
-class ThemeIdea {
-  final String title;
-  final String dressCode;
-  final String vibe;
-  final String menuHint;
+    final encodedMessage = Uri.encodeComponent(message);
+    final whatsappUrl = Uri.parse('whatsapp://send?text=$encodedMessage');
+    final webWhatsappUrl = Uri.parse('https://wa.me/?text=$encodedMessage');
 
-  ThemeIdea({required this.title, required this.dressCode, required this.vibe, required this.menuHint});
-}
-
-class ThemeResultScreen extends StatelessWidget {
-  final DateTime partyDate;
-  const ThemeResultScreen({Key? key, required this.partyDate}) : super(key: key);
-
-  List<ThemeIdea> _getThemesForMonth(int month) {
-    if (month == 1 || month == 12 || month == 2) {
-      return [
-        ThemeIdea(title: '🔥 Royal Velvet & Bonfire Vibe', dressCode: 'Velvet suits or shawls in Royal Blue / Maroon', vibe: 'Cozy winter evening with warm lighting & soft music', menuHint: 'Soup counter, Sizzlers, & Hot Gulab Jamun'),
-        ThemeIdea(title: '✨ Retro Bollywood 90s', dressCode: 'Polka dots, Retro sunglasses, and retro sarees', vibe: 'Classic retro songs, fun antakshari, and photo booth', menuHint: 'Golgappa stall, Pav Bhaji, & Old-school mocktails'),
-        ThemeIdea(title: '👑 Royal Mughal Darbar', dressCode: 'Anarkali suits, heavy ethnic jewelry & juttis', vibe: 'Royal table setup with candles, pillows & sheesha props', menuHint: 'Biryani, Shahi Paneer, & Phirni'),
-      ];
-    } else if (month >= 3 && month <= 6) {
-      return [
-        ThemeIdea(title: '🌸 Floral Garden Brunch', dressCode: 'Pastel shades, Floral print sarees or flowy dresses', vibe: 'Daylight party with fresh flowers, hats & sunglasses', menuHint: 'Cold brew coffee, Mini sandwiches, & Fruit tarts'),
-        ThemeIdea(title: '🌴 Tropical Beach Bash', dressCode: 'Bright tropical colors, Hawaiian shirts, or floral maxis', vibe: 'Vibrant summer mood with shades, mocktails & fun games', menuHint: 'Virgin Mojitos, Pasta, & Exotic Fruit Salad'),
-        ThemeIdea(title: '💎 Shimmer & Shine Glam', dressCode: 'Sequins, glitter gowns or shimmer sarees', vibe: 'Glamorous night out with high energy music & spotlight setup', menuHint: 'Starter platter, Brownie with ice cream'),
-      ];
+    if (await canLaunchUrl(whatsappUrl)) {
+      await launchUrl(whatsappUrl);
+    } else if (await canLaunchUrl(webWhatsappUrl)) {
+      await launchUrl(webWhatsappUrl);
     } else {
-      return [
-        ThemeIdea(title: '🌧️ Monsoon Chai & Pakoda Cafe', dressCode: 'Bright yellow or green comfy ethnic wear', vibe: 'Rain-watching setup with fairy lights, paper boats & music', menuHint: 'Adrak Chai, Pyaz Pakode, & Corn chat'),
-        ThemeIdea(title: '🏮 Traditional Desi Bandhani', dressCode: 'Bandhani or Leheriya sarees with traditional bangles', vibe: 'Desi vibe with traditional folk music and tambola game', menuHint: 'Dhokla, Khandvi, & Rabdi Jalebi'),
-        ThemeIdea(title: '🎭 Masquerade Mystery Night', dressCode: 'Black & Gold western gown / Indo-western with Masks', vibe: 'Mysterious, elegant, classy candle-light dinner theme', menuHint: 'Paneer Tikka, Italian Pasta, & Mocktails'),
-      ];
+      debugPrint('Could not launch WhatsApp');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final themes = _getThemesForMonth(partyDate.month);
+    String formattedDate = DateFormat('MMMM dd, yyyy').format(selectedDate);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CURATED PARTY THEMES', style: TextStyle(fontFamily: 'serif', fontSize: 16, color: Color(0xFF880E4F), fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFFF8E1E7),
-        iconTheme: const IconThemeData(color: Color(0xFF880E4F)),
+        title: const Text(
+          'KittyPro - Party Planner',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFFD87093),
+        elevation: 0,
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: themes.length,
-          itemBuilder: (context, index) {
-            final theme = themes[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date Picker Card
+            Card(
+              color: const Color(0xFFFFFDD0), // Cream color
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFF8BBD0).withOpacity(0.6)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.pink.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
+              elevation: 2,
               child: Padding(
-                padding: const EdgeInsets.all(18.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'OPTION ${index + 1}: ${theme.title}',
-                      style: const TextStyle(color: Color(0xFFD81B60), fontWeight: FontWeight.bold, fontSize: 16, fontFamily: 'serif'),
-                    ),
-                    const Divider(color: Color(0xFFFCE4EC), height: 20),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.checkroom, color: Color(0xFFAD1457), size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(child: Text('Dress Code: ${theme.dressCode}', style: const TextStyle(color: Color(0xFF4A2E35), fontSize: 13, fontWeight: FontWeight.w500))),
+                        const Text(
+                          'Selected Party Date:',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          formattedDate,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF8B008B),
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.auto_awesome, color: Color(0xFFC79100), size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(child: Text('Vibe: ${theme.vibe}', style: const TextStyle(color: Color(0xFF6D4C41), fontSize: 13))),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.restaurant_menu, color: Color(0xFF2E7D32), size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(child: Text('Menu Idea: ${theme.menuHint}', style: const TextStyle(color: Color(0xFF6D4C41), fontSize: 13))),
-                      ],
+                    ElevatedButton.icon(
+                      onPressed: () => _selectDate(context),
+                      icon: const Icon(Icons.calendar_today, size: 16, color: Colors.white),
+                      label: const Text('Change', style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD87093),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Curated Themes for this Month:',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6A5ACD),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Themes List
+            Expanded(
+              child: ListView.builder(
+                itemCount: currentThemes.length,
+                itemBuilder: (context, index) {
+                  final theme = currentThemes[index];
+                  return Card(
+                    color: Colors.white,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                theme["title"]!,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFD87093),
+                                ),
+                              ),
+                              const Icon(Icons.auto_awesome, color: Color(0xFFDA70D6), size: 20),
+                            ],
+                          ),
+                          const Divider(height: 16),
+                          Text('👗 Dress Code: ${theme["dressCode"]}', style: const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 6),
+                          Text('🎨 Vibe: ${theme["vibe"]}', style: const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 6),
+                          Text('🍽️ Menu Idea: ${theme["menu"]}', style: const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 14),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                shareThemeOnWhatsApp(
+                                  theme["title"]!,
+                                  theme["dressCode"]!,
+                                  theme["vibe"]!,
+                                  theme["menu"]!,
+                                );
+                              },
+                              icon: const Icon(Icons.share, size: 16, color: Colors.white),
+                              label: const Text("Share on WhatsApp", style: TextStyle(fontSize: 12, color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                elevation: 0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
