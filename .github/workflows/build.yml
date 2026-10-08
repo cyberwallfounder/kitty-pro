@@ -26,7 +26,7 @@ jobs:
           cache: true
 
       - name: Generate Android project scaffolding
-        run: flutter create . --platforms=android
+        run: flutter create . --project-name=kitty_pro --platforms=android
 
       - name: Install dependencies
         run: flutter pub get
